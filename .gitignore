@@ -1,4 +1,4 @@
-# Python
+# Python caches (may regenerate under project dirs)
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,9 +6,9 @@ __pycache__/
 venv/
 .env
 
-# desktop-pet build outputs
-desktop-pet/build/
-desktop-pet/dist/
+# All local-only artifacts live here (see local-only/README.md)
+local-only/*
+!local-only/README.md
 
-# local saves (optional; keep template only)
-game/dodge_save.json
+# pip may still recreate egg-info next to pyproject.toml
+opencode/opencode_cli.egg-info/

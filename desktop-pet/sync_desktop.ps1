@@ -1,6 +1,6 @@
 # ASCII-only; folder name via Unicode scalars (avoids .ps1 file encoding / parser issues)
 $ErrorActionPreference = "Stop"
-$dist = Join-Path $PSScriptRoot "dist\DesktopPet"
+$dist = Join-Path $PSScriptRoot "..\local-only\desktop-pet\dist\DesktopPet"
 $exeSrc = Join-Path $dist "DesktopPet.exe"
 if (-not (Test-Path -LiteralPath $exeSrc)) {
     Write-Host "ERROR: Missing build output:"

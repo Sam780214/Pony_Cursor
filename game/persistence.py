@@ -27,6 +27,7 @@ class SaveManager:
 
     def flush(self) -> None:
         try:
+            SAVE_PATH.parent.mkdir(parents=True, exist_ok=True)
             SAVE_PATH.write_text(
                 json.dumps({"best_score": self.data.best_score}, ensure_ascii=False, indent=2),
                 encoding="utf-8",

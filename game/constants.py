@@ -18,7 +18,14 @@ FPS = 60
 TITLE = "Pony · 星屑回避"
 
 SAVE_FILENAME = "dodge_save.json"
-SAVE_PATH = app_base_dir() / SAVE_FILENAME
+
+
+def local_only_game_dir() -> Path:
+    """存档放在仓库外的 local-only/game/。"""
+    return app_base_dir().parent / "local-only" / "game"
+
+
+SAVE_PATH = local_only_game_dir() / SAVE_FILENAME
 
 COLOR_BG = (12, 14, 28)
 COLOR_STAR_FIELD = (40, 48, 72)

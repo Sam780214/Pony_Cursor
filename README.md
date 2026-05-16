@@ -10,6 +10,10 @@
 | `opencode/` | OpenCode CLI 相关 |
 | `game/` | Python 小游戏 |
 
+## 本地专用目录
+
+未上传的构建产物、缓存与存档统一放在 **`local-only/`**（仅 `README.md` 进 Git，其余被 `.gitignore` 忽略）。详见 [local-only/README.md](local-only/README.md)。
+
 ## 本地运行
 
 ```bash
