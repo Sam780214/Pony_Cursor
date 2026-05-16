@@ -1,0 +1,14 @@
+Desktop Pet=非工作模式
+管理员: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe=工作模式
+desktop-pet=工作模式
+管理员: OC | 快捷=工作模式
+Google - Google Chrome=工作模式
+Cursor=工作模式
+Ollama=非工作模式
+选择 管理员: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe=工作模式
+*文字.txt - 记事本=工作模式
+管理员: C:\Windows\system32\cmd.exe - ollama  run gemma3:4b=工作模式
+Program Manager=工作模式
+Administrator:  Gemma 3 魔法讲堂启动器=工作模式
+魔法讲堂 - Google Chrome=工作模式
+run_pet.bat - desktop-pet - Cursor [Administrator]=非工作模式

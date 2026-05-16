@@ -1,0 +1,18 @@
+[project]
+name = "opencode-cli"
+version = "0.1.0"
+description = "Pony CLI: OpenCode session list/restore (command: pony, not opencode)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+pony = "opencode.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opencode*"]

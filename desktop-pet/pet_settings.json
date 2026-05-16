@@ -1,0 +1,9 @@
+{
+  "ollama_model": "gemma3:4b",
+  "ollama_base_url": "http://localhost:11434",
+  "pet_scale": 1.5,
+  "show_pet_on_start": false,
+  "plan_task_targets": [
+    "opencode"
+  ]
+}

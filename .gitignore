@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.env
+
+# desktop-pet build outputs
+desktop-pet/build/
+desktop-pet/dist/
+
+# local saves (optional; keep template only)
+game/dodge_save.json
