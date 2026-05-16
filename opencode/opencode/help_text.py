@@ -7,6 +7,11 @@ HELP = """Pony CLI（opencode-cli 包，命令 pony）
   PONY_SOFTWARE         与 -y 联用：跳过「发起软件」询问时写入记录的 software 字段（可选）
 
 命令
+  pony git [--repo URL] [--root 路径] [-y]
+                                在 Pony 根目录下清理并重建「Pony_Cursor_repo」，再浅克隆 GitHub 仓库到该
+                                文件夹内（默认根: OPENCODE_RECORD_DIR，未设时为 D:\\Pony；完整路径示例
+                                D:\\Pony\\Pony_Cursor_repo；默认仓库: PONY_GIT_REPO 或
+                                https://github.com/Sam780214/Pony_Cursor.git）
   pony game                     启动「星屑回避」（pygame，入口 game\\main.py）
   pony help                     本说明
   pony list                     直接多选已归档会话（需 questionary，不先整表刷屏）
@@ -24,7 +29,7 @@ HELP = """Pony CLI（opencode-cli 包，命令 pony）
 
 重要操作前会：① 询问「发起软件」（cmd / PowerShell / pwsh / wt / 其他）；② 再询问「确定执行」。
 加 -y / --yes 时跳过第②步；第①步可用环境变量 PONY_SOFTWARE 指定，否则记为「未指定(-y)」。
-每次成功执行 list / rollback / rm 会向「路径操作记录.json」追加一条记录（仅含：时间、发起路径、目标路径、名称、简称、发起软件、ID）；manifest 仍会含 initiator_software（list 时）。
+每次成功执行 list / rollback / rm / git 会向「路径操作记录.json」追加一条记录（仅含：时间、发起路径、目标路径、名称、简称、发起软件、ID）；manifest 仍会含 initiator_software（list 时）。
 
 可选依赖: pip install questionary
 """
