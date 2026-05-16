@@ -7,6 +7,7 @@ if sys.platform == 'win32':
     except (AttributeError, OSError, ValueError):
         pass
 
+from . import git_cmd
 from . import help_text
 from . import list_cmd
 from . import rollback_cmd
@@ -27,6 +28,8 @@ def _main_code() -> int:
     cmd = argv[0]
     rest = argv[1:]
 
+    if cmd == 'git':
+        return git_cmd.run(rest)
     if cmd == 'list':
         return list_cmd.run(rest)
     if cmd == 'rollback':
