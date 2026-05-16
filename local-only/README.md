@@ -16,4 +16,6 @@
 
 代码通过仓库根目录的 `pony_local.py` 自动解析 `local-only/` 路径。
 
+**Canonical 路径**：当 `D:\Pony\local-only` 存在时，所有缓存/存档/构建输出写入该目录（而非克隆仓库内的 `local-only/`）。可通过环境变量 `PONY_LOCAL_ONLY_ROOT` 覆盖。
+
 重新打包桌面宠物：在 `desktop-pet` 下运行 `快速更新.bat`。

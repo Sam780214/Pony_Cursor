@@ -14,7 +14,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
-set "OUT=%~dp0..\local-only\desktop-pet"
+cd /d "%~dp0.."
+for /f "delims=" %%i in ('%PY% -c "import pony_local; print(pony_local.project_local_dir('desktop-pet'))"') do set "OUT=%%i"
+cd /d "%~dp0"
 if not exist "%OUT%\dist" mkdir "%OUT%\dist"
 if not exist "%OUT%\build" mkdir "%OUT%\build"
 

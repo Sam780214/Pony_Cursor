@@ -1,6 +1,13 @@
 # ASCII-only; folder name via Unicode scalars (avoids .ps1 file encoding / parser issues)
 $ErrorActionPreference = "Stop"
-$dist = Join-Path $PSScriptRoot "..\local-only\desktop-pet\dist\DesktopPet"
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$pyExpr = "import sys; sys.path.insert(0, r'$repoRoot'); import pony_local; print(pony_local.local_only_root(), end='')"
+if (Get-Command py -ErrorAction SilentlyContinue) {
+    $loRoot = py -3 -c $pyExpr
+} else {
+    $loRoot = python -c $pyExpr
+}
+$dist = Join-Path $loRoot "desktop-pet\dist\DesktopPet"
 $exeSrc = Join-Path $dist "DesktopPet.exe"
 if (-not (Test-Path -LiteralPath $exeSrc)) {
     Write-Host "ERROR: Missing build output:"
