@@ -38,4 +38,4 @@ def record_dir() -> str:
     rd = (os.environ.get("OPENCODE_RECORD_DIR") or "").strip()
     if rd:
         return os.path.expandvars(os.path.expanduser(rd))
-    return str(pony_local.find_repo_root(_PKG_ROOT))
+    return str(pony_local.pony_workspace_root(_PKG_ROOT))

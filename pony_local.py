@@ -24,6 +24,20 @@ def ensure_repo_on_path(start: Path | None = None) -> Path:
     raise ImportError("找不到 pony_local.py（请在 Pony 仓库根或克隆根运行）")
 
 
+def pony_workspace_root(start: Path | None = None) -> Path:
+    """Pony 工作区根（含 Pony_Cursor_repo 子目录时为其父目录，如 D:\\Pony）。"""
+    repo = find_repo_root(start)
+    canonical = Path(r"D:\Pony")
+    try:
+        if canonical.is_dir() and repo.is_relative_to(canonical):
+            return canonical
+    except ValueError:
+        pass
+    if repo.name == "Pony_Cursor_repo":
+        return repo.parent
+    return repo
+
+
 def find_repo_root(start: Path | None = None) -> Path:
     """定位含 pony_local.py 与项目子目录的 Git 仓库根（如 Pony_Cursor_repo）。"""
     p = (start or Path.cwd()).resolve()

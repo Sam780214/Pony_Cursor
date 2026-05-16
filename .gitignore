@@ -15,5 +15,6 @@ opencode/opencode_cli.egg-info/
 
 # legacy paths (use local-only/ instead)
 game/dodge_save.json
+game/dist/
 desktop-pet/pet_settings.json
 desktop-pet/software_modes.txt
