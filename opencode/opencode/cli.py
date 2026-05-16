@@ -1,6 +1,11 @@
 import sys
 from pathlib import Path
 
+_pkg_root = Path(__file__).resolve().parent.parent
+if str(_pkg_root) not in sys.path:
+    sys.path.insert(0, str(_pkg_root))
+import _load_pony  # noqa: F401
+
 import pony_local
 
 pony_local.ensure_repo_on_path(Path(__file__).resolve().parent.parent)

@@ -16,6 +16,8 @@ import subprocess
 import shutil
 from pathlib import Path
 
+import _load_pony  # noqa: F401
+
 
 def _app_dir():
     """程序所在目录（源码运行或 PyInstaller 打包后均为 exe 同级目录）"""

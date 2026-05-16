@@ -7,6 +7,8 @@ import sys
 from enum import Enum, auto
 from pathlib import Path
 
+import _load_pony  # noqa: F401
+
 import pony_local
 
 pony_local.ensure_repo_on_path(Path(__file__).parent)
