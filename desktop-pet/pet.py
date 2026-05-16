@@ -14,6 +14,7 @@ import urllib.parse
 import threading
 import subprocess
 import shutil
+from pathlib import Path
 
 
 def _app_dir():
@@ -21,6 +22,26 @@ def _app_dir():
     if getattr(sys, "frozen", False):
         return os.path.dirname(os.path.abspath(sys.executable))
     return os.path.dirname(os.path.abspath(__file__))
+
+
+def _local_data_dir():
+    """用户数据与缓存：local-only/desktop-pet/"""
+    import pony_local
+
+    start = Path(__file__).resolve().parent
+    pony_local.ensure_repo_on_path(start)
+    pony_local.configure_pycache("desktop-pet", start=start)
+    return str(pony_local.project_local_dir("desktop-pet", start=start))
+
+
+def _migrate_data_file(filename: str, app_dir: str, data_dir: str) -> str:
+    """从源码目录迁移到 local-only（若目标不存在）。"""
+    os.makedirs(data_dir, exist_ok=True)
+    dst = os.path.join(data_dir, filename)
+    src = os.path.join(app_dir, filename)
+    if os.path.isfile(src) and not os.path.isfile(dst):
+        shutil.copy2(src, dst)
+    return dst
 
 
 def _plan_task_desktop_folder():
@@ -352,8 +373,13 @@ class DesktopPet:
         self._main_fullscreen = False
         
         self._app_dir = _app_dir()
-        self._settings_path = os.path.join(self._app_dir, "pet_settings.json")
-        self.software_modes_file = os.path.join(self._app_dir, "software_modes.txt")
+        self._data_dir = _local_data_dir()
+        self._settings_path = _migrate_data_file(
+            "pet_settings.json", self._app_dir, self._data_dir
+        )
+        self.software_modes_file = _migrate_data_file(
+            "software_modes.txt", self._app_dir, self._data_dir
+        )
         self.current_software = ""
         self.current_mode = "工作模式"
         
@@ -1282,7 +1308,11 @@ class DesktopPet:
             except Exception as e:
                 messagebox.showerror("保存失败", str(e), parent=win)
                 return
-            messagebox.showinfo("已保存", "设置已写入程序目录下的 pet_settings.json。\n对话记录已按新模型重置。", parent=win)
+            messagebox.showinfo(
+                "已保存",
+                "设置已写入 local-only/desktop-pet/pet_settings.json。\n对话记录已按新模型重置。",
+                parent=win,
+            )
         
         tk.Button(win, text="保存聊天设置", command=do_save, width=18).pack(pady=10)
         

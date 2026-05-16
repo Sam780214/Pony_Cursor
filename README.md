@@ -2,6 +2,8 @@
 
 给 Cursor 的代码。
 
+仓库根目录的 **`pony_local.py`** 负责把各项目的缓存、存档与构建输出解析到 `local-only/`。
+
 ## 目录
 
 | 目录 | 说明 |
@@ -26,4 +28,9 @@ python pet.py
 cd game
 pip install -r requirements.txt
 python main.py
+
+# OpenCode CLI（需在仓库根或子目录，以便找到 pony_local.py）
+cd opencode
+pip install -e .
+opencode list
 ```

@@ -5,6 +5,12 @@ import math
 import random
 import sys
 from enum import Enum, auto
+from pathlib import Path
+
+import pony_local
+
+pony_local.ensure_repo_on_path(Path(__file__).parent)
+pony_local.configure_pycache("game", start=Path(__file__).parent)
 
 import pygame
 

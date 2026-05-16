@@ -1,9 +1,23 @@
 import os
+import shutil
 import sqlite3
 from .paths import opencode_db_path
 
 
+def _maybe_migrate_legacy_db() -> None:
+    p = opencode_db_path()
+    if os.path.isfile(p):
+        return
+    legacy = os.path.join(
+        os.path.expanduser("~"), ".local", "share", "opencode", "opencode.db"
+    )
+    if os.path.isfile(legacy):
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        shutil.copy2(legacy, p)
+
+
 def connect() -> sqlite3.Connection:
+    _maybe_migrate_legacy_db()
     p = opencode_db_path()
     if not os.path.isfile(p):
         raise FileNotFoundError(f"找不到数据库: {p}")

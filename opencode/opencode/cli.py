@@ -1,4 +1,10 @@
 import sys
+from pathlib import Path
+
+import pony_local
+
+pony_local.ensure_repo_on_path(Path(__file__).resolve().parent.parent)
+pony_local.configure_pycache("opencode", start=Path(__file__).resolve().parent.parent)
 
 if sys.platform == 'win32':
     try:

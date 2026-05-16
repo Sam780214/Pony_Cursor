@@ -4,11 +4,22 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pony_local
+
+pony_local.ensure_repo_on_path(Path(__file__).parent)
+from pony_local import project_local_dir
+
 
 def app_base_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
+
+
+def configure_runtime() -> None:
+    import pony_local
+
+    pony_local.configure_pycache("game", start=Path(__file__).parent)
 
 
 SCREEN_W = 1280
@@ -18,14 +29,7 @@ FPS = 60
 TITLE = "Pony · 星屑回避"
 
 SAVE_FILENAME = "dodge_save.json"
-
-
-def local_only_game_dir() -> Path:
-    """存档放在仓库外的 local-only/game/。"""
-    return app_base_dir().parent / "local-only" / "game"
-
-
-SAVE_PATH = local_only_game_dir() / SAVE_FILENAME
+SAVE_PATH = project_local_dir("game", start=Path(__file__).parent) / SAVE_FILENAME
 
 COLOR_BG = (12, 14, 28)
 COLOR_STAR_FIELD = (40, 48, 72)
