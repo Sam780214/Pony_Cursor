@@ -12,3 +12,6 @@ local-only/*
 
 # pip may still recreate egg-info next to pyproject.toml
 opencode/opencode_cli.egg-info/
+
+# legacy path (use local-only/game/ instead)
+game/dodge_save.json
