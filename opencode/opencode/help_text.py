@@ -8,9 +8,10 @@ HELP = """Pony CLI（opencode-cli 包，命令 pony）
 
 命令
   pony git [--repo URL] [--root 路径] [-y]
-                                从 GitHub 浅克隆仓库，用其中 desktop-pet、opencode、game
-                                覆盖目标根目录下同名字夹（默认根: OPENCODE_RECORD_DIR，未设时为 D:\\Pony；
-                                默认仓库: PONY_GIT_REPO 或 https://github.com/Sam780214/Pony_Cursor.git）
+                                在 Pony 根目录下清理并重建「Pony_Cursor_repo」，再浅克隆 GitHub 仓库到该
+                                文件夹内（默认根: OPENCODE_RECORD_DIR，未设时为 D:\\Pony；完整路径示例
+                                D:\\Pony\\Pony_Cursor_repo；默认仓库: PONY_GIT_REPO 或
+                                https://github.com/Sam780214/Pony_Cursor.git）
   pony game                     启动「星屑回避」（pygame，入口 game\\main.py）
   pony help                     本说明
   pony list                     直接多选已归档会话（需 questionary，不先整表刷屏）
