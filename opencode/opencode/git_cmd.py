@@ -22,6 +22,33 @@ def _which_git() -> str | None:
     return shutil.which("git")
 
 
+def _pony_install_dir() -> str | None:
+    """全局 pony 命令对应的源码目录（pip install -e 时通常在 Pony_Cursor_repo\\opencode）。"""
+    try:
+        import opencode.cli as cli_mod
+
+        return os.path.dirname(os.path.abspath(cli_mod.__file__))
+    except Exception:
+        return None
+
+
+def _warn_global_install_inside_repo(repo_dest: str) -> None:
+    repo_dest = os.path.abspath(repo_dest)
+    pkg = _pony_install_dir()
+    if not pkg:
+        return
+    pkg = os.path.abspath(pkg)
+    if pkg == repo_dest or pkg.startswith(repo_dest + os.sep):
+        print(
+            "（说明）pony 已通过 pip 全局安装，当前加载的代码就在待重建的 "
+            f"{REPO_DIR_NAME} 内。\n"
+            "  · 请勿在本目录内运行 pony git；应先 cd /d D:\\Pony\n"
+            "  · 克隆完成后请重新执行: "
+            f"cd /d {repo_dest}\\opencode && py -3 -m pip install -e .",
+            file=sys.stderr,
+        )
+
+
 def _on_rm_error(func, path: str, exc_info) -> None:
     if not os.path.lexists(path):
         return
@@ -104,6 +131,8 @@ def run(argv: list[str]) -> int:
         print("未找到 git 可执行文件，请安装 Git 并加入 PATH。", file=sys.stderr)
         return 2
 
+    _warn_global_install_inside_repo(repo_dest)
+
     software = ui.ask_initiator_software(skip=ns.yes)
     if software is None:
         return 1
@@ -170,4 +199,10 @@ def run(argv: list[str]) -> int:
         print(f"（警告）路径操作记录写入失败: {e}", file=sys.stderr)
 
     print(f"已将 GitHub 内容导入:\n  {repo_dest}")
+    print(
+        f"\n请在新 cmd 中重新注册全局 pony 命令:\n"
+        f"  cd /d {os.path.join(repo_dest, 'opencode')}\n"
+        f"  py -3 -m pip install -e .",
+        file=sys.stderr,
+    )
     return 0

@@ -12,6 +12,8 @@ HELP = """Pony CLI（opencode-cli 包，命令 pony）
   pony git [--repo URL] [--root 路径] [-y]
                                 在 Pony 根目录下清理并重建「Pony_Cursor_repo」，再浅克隆 GitHub
                                 （默认根 D:\\Pony，目标 D:\\Pony\\Pony_Cursor_repo）
+                                注意: pony 为全局命令(pip install -e)，勿在 Pony_Cursor_repo 内执行；
+                                完成后需对新克隆再 pip install -e . 一次
   pony game                     启动「星屑回避」（pygame，入口 game\\main.py）
   pony help                     本说明
   pony list                     直接多选已归档会话（需 questionary）
