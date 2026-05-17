@@ -59,6 +59,64 @@ def _on_rm_error(func, path: str, exc_info) -> None:
         raise
 
 
+def _pids_using_path_windows(tree: str) -> list[int]:
+    """查找命令行或可执行路径中包含 tree 的进程（不含当前 pony 进程）。"""
+    my_pid = os.getpid()
+    tree_ps = tree.replace("'", "''")
+    script = f"""
+$root = '{tree_ps}'
+Get-CimInstance Win32_Process | Where-Object {{
+  $_.ProcessId -ne {my_pid} -and (
+    ($_.CommandLine -and $_.CommandLine -like \"*$root*\") -or
+    ($_.ExecutablePath -and $_.ExecutablePath -like \"*$root*\")
+  )
+}} | ForEach-Object {{ $_.ProcessId }}
+"""
+    proc = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", script],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    pids: list[int] = []
+    for line in (proc.stdout or "").splitlines():
+        line = line.strip()
+        if line.isdigit():
+            pid = int(line)
+            if pid != my_pid:
+                pids.append(pid)
+    return pids
+
+
+def _stop_processes_holding_tree(tree: str) -> int:
+    """删除前结束占用该目录的进程（主要为 Python；不结束 Cursor）。"""
+    if sys.platform != "win32":
+        return 0
+    tree = os.path.abspath(tree)
+    pids = _pids_using_path_windows(tree)
+    if not pids:
+        return 0
+    names: list[str] = []
+    for pid in pids:
+        r = subprocess.run(
+            ["taskkill", "/PID", str(pid), "/F"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if r.returncode == 0:
+            names.append(str(pid))
+    if names:
+        print(
+            f"（已结束占用 {REPO_DIR_NAME} 的进程 PID: {', '.join(names)}）",
+            file=sys.stderr,
+        )
+        time.sleep(1.0)
+    return len(names)
+
+
 def _leave_tree_if_inside(tree: str, fallback_dir: str) -> None:
     """若当前工作目录在待删目录内，先切到 Pony 根目录，避免 WinError 5。"""
     tree = os.path.abspath(tree)
@@ -77,6 +135,7 @@ def _remove_tree(path: str, pony_root: str) -> None:
     if not os.path.lexists(path):
         return
     _leave_tree_if_inside(path, pony_root)
+    _stop_processes_holding_tree(path)
 
     if sys.platform == "win32":
         for attempt in range(3):
@@ -140,8 +199,9 @@ def run(argv: list[str]) -> int:
     exists_hint = "（若存在则整棵删除）" if os.path.lexists(repo_dest) else ""
     if not ui.confirm_or_abort(
         "将执行：\n"
-        f"  1) 在「{pony_root}」下清理子目录「{REPO_DIR_NAME}」{exists_hint}\n"
-        f"  2) 浅克隆（depth=1）仓库到「{repo_dest}」\n\n"
+        f"  1) 结束占用「{REPO_DIR_NAME}」的 Python 相关进程（不含本进程与 Cursor）\n"
+        f"  2) 在「{pony_root}」下清理子目录「{REPO_DIR_NAME}」{exists_hint}\n"
+        f"  3) 浅克隆（depth=1）仓库到「{repo_dest}」\n\n"
         f"仓库: {repo_url}",
         skip=ns.yes,
     ):
