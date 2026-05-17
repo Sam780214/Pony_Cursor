@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import stat
 import subprocess
 import sys
+import time
 
 from . import records, ui
 from .paths import record_dir
@@ -18,6 +20,59 @@ DEFAULT_REPO = "https://github.com/Sam780214/Pony_Cursor.git"
 
 def _which_git() -> str | None:
     return shutil.which("git")
+
+
+def _on_rm_error(func, path: str, exc_info) -> None:
+    if not os.path.lexists(path):
+        return
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except OSError:
+        raise
+
+
+def _leave_tree_if_inside(tree: str, fallback_dir: str) -> None:
+    """若当前工作目录在待删目录内，先切到 Pony 根目录，避免 WinError 5。"""
+    tree = os.path.abspath(tree)
+    fallback_dir = os.path.abspath(fallback_dir)
+    try:
+        cwd = os.path.abspath(os.getcwd())
+    except OSError:
+        return
+    if cwd == tree or cwd.startswith(tree + os.sep):
+        os.chdir(fallback_dir)
+        print(f"（已离开待删目录，当前工作目录: {os.getcwd()}）", file=sys.stderr)
+
+
+def _remove_tree(path: str, pony_root: str) -> None:
+    path = os.path.abspath(path)
+    if not os.path.lexists(path):
+        return
+    _leave_tree_if_inside(path, pony_root)
+
+    if sys.platform == "win32":
+        for attempt in range(3):
+            subprocess.run(
+                ["cmd", "/c", "rmdir", "/s", "/q", path],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            if not os.path.lexists(path):
+                return
+            if attempt < 2:
+                time.sleep(0.5)
+        if os.path.lexists(path):
+            print(
+                "（提示）Windows 仍无法删除部分文件。请关闭占用 "
+                f"{REPO_DIR_NAME} 的程序（Cursor、在本目录打开的 cmd 等），"
+                f"在 D:\\Pony 下重新执行: pony git -y",
+                file=sys.stderr,
+            )
+
+    shutil.rmtree(path, onerror=_on_rm_error)
 
 
 def run(argv: list[str]) -> int:
@@ -64,8 +119,24 @@ def run(argv: list[str]) -> int:
         return 1
 
     os.makedirs(pony_root, exist_ok=True)
+    try:
+        os.chdir(pony_root)
+    except OSError:
+        pass
     if os.path.lexists(repo_dest):
-        shutil.rmtree(repo_dest)
+        try:
+            _remove_tree(repo_dest, pony_root)
+        except OSError as e:
+            print(f"删除失败: {repo_dest}\n{e}", file=sys.stderr)
+            print(
+                "请先关闭 Cursor / 结束在 Pony_Cursor_repo 内的终端，"
+                f"在 cmd 执行: cd /d {pony_root}  再运行 pony git -y",
+                file=sys.stderr,
+            )
+            return 1
+        if os.path.lexists(repo_dest):
+            print(f"删除未完成，目录仍在: {repo_dest}", file=sys.stderr)
+            return 1
 
     proc = subprocess.run(
         ["git", "clone", "--depth", "1", repo_url, repo_dest],
