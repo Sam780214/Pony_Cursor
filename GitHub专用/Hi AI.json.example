@@ -1,0 +1,3 @@
+# 可复制到 D:\Pony\Hi AI.json
+"gemma3:1b" = "PAT"
+"qwen3:8b" = "Qwen大"
