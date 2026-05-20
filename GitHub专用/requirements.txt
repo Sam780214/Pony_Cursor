@@ -1,0 +1,1 @@
+# Hi AI 仅使用 Python 标准库（tkinter、urllib），无需额外安装依赖。
