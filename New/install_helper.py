@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Pony_Cursor 依赖勾选安装助手。
+Pony_Cursor 依赖勾选安装助手（仓库根目录 New/，与 GitHub专用/ 无关）。
 读取同目录 dependencies.json，按项目预选 pip 包并一键安装。
 """
 from __future__ import annotations
