@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "version": "1.0",
+    "title": "Pony_Cursor 依赖清单",
+    "description": "各子项目运行、构建与可选功能所需的预装依赖；供 install_helper.py 读取并生成安装命令。",
+    "python_min": "3.10",
+    "repository": "Pony_Cursor",
+    "last_scanned": "2026-05-26"
+  },
+  "tools": [
+    {
+      "id": "pony-root",
+      "name": "仓库根 · pony_local",
+      "path": "/",
+      "entry": "pony_local.py（被各子目录 import）",
+      "run_hint": "无需单独启动；配置 local-only 路径",
+      "dependency_ids": ["python"]
+    },
+    {
+      "id": "opencode-cli",
+      "name": "Pony CLI (opencode/)",
+      "path": "opencode/",
+      "entry": "pony（pip install -e . 后全局命令）",
+      "run_hint": "cd opencode && pip install -e . && pony help",
+      "dependency_ids": ["python", "setuptools", "questionary"]
+    },
+    {
+      "id": "opencode-git",
+      "name": "pony git 子命令",
+      "path": "opencode/",
+      "entry": "pony git -y",
+      "run_hint": "需本机已安装 Git 并加入 PATH",
+      "dependency_ids": ["python", "setuptools", "git"]
+    },
+    {
+      "id": "game",
+      "name": "星屑回避 (game/)",
+      "path": "game/",
+      "entry": "python main.py 或 pony game",
+      "run_hint": "cd game && pip install -r requirements.txt && python main.py",
+      "dependency_ids": ["python", "pygame"]
+    },
+    {
+      "id": "desktop-pet-run",
+      "name": "桌面宠物 · 运行 (desktop-pet/)",
+      "path": "desktop-pet/",
+      "entry": "python pet.py",
+      "run_hint": "完整功能需 keyboard / Pillow / pystray；AI 对话需 Ollama",
+      "dependency_ids": ["python", "tkinter", "keyboard", "pillow", "pystray", "ollama"]
+    },
+    {
+      "id": "desktop-pet-build",
+      "name": "桌面宠物 · 打包 exe",
+      "path": "desktop-pet/",
+      "entry": "快速更新.bat / PyInstaller",
+      "run_hint": "仅构建时需要 pyinstaller",
+      "dependency_ids": ["python", "tkinter", "keyboard", "pillow", "pystray", "pyinstaller"]
+    },
+    {
+      "id": "hi-ai",
+      "name": "Hi AI (GitHub专用/)",
+      "path": "GitHub专用/",
+      "entry": "python main.py 或 run_web.bat",
+      "run_hint": "仅标准库；对话依赖本机 Ollama 服务",
+      "dependency_ids": ["python", "tkinter", "ollama"]
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "python",
+      "kind": "runtime",
+      "display_name": "Python",
+      "version": ">=3.10",
+      "install": {
+        "windows": "https://www.python.org/downloads/ 或 py -3",
+        "linux": "sudo apt install python3 python3-pip python3-tk",
+        "macos": "brew install python@3.12"
+      },
+      "pip_spec": null,
+      "optional": false,
+      "tags": ["全部项目"],
+      "role": "解释器；opencode 包要求 3.10+；各子目录通过 _load_pony 加载 pony_local。"
+    },
+    {
+      "id": "tkinter",
+      "kind": "stdlib",
+      "display_name": "tkinter (标准库)",
+      "version": "随 Python 安装",
+      "install": {
+        "windows": "安装 Python 时勾选 tcl/tk",
+        "linux": "sudo apt install python3-tk",
+        "macos": "通常已包含；缺失时用官方 python.org 安装包"
+      },
+      "pip_spec": null,
+      "optional": false,
+      "tags": ["desktop-pet", "hi-ai"],
+      "role": "桌面 GUI：宠物主窗口、设置面板；Hi AI 桌面版界面与统计图表。"
+    },
+    {
+      "id": "setuptools",
+      "kind": "pip",
+      "display_name": "setuptools",
+      "version": ">=61",
+      "pip_spec": "setuptools>=61",
+      "optional": false,
+      "tags": ["opencode-cli"],
+      "role": "构建 opencode-cli 可编辑安装（pip install -e .）时的 build 后端依赖。"
+    },
+    {
+      "id": "pygame",
+      "kind": "pip",
+      "display_name": "pygame",
+      "version": ">=2.5.0",
+      "pip_spec": "pygame>=2.5.0",
+      "source_file": "game/requirements.txt",
+      "optional": false,
+      "tags": ["game"],
+      "role": "2D 游戏引擎：窗口、渲染、键盘/鼠标输入、帧率控制；星屑回避与元素躲藏玩法。"
+    },
+    {
+      "id": "questionary",
+      "kind": "pip",
+      "display_name": "questionary",
+      "version": "最新稳定版",
+      "pip_spec": "questionary",
+      "optional": true,
+      "tags": ["opencode-cli"],
+      "role": "终端交互多选：pony list / pony rm pick / 发起软件选择；未安装时回退为纯文本序号输入。"
+    },
+    {
+      "id": "keyboard",
+      "kind": "pip",
+      "display_name": "keyboard",
+      "version": ">=0.13.5",
+      "pip_spec": "keyboard>=0.13.5",
+      "source_file": "desktop-pet/requirements.txt",
+      "optional": false,
+      "tags": ["desktop-pet"],
+      "role": "全局热键：Ctrl+Shift+P 召唤宠物、Ctrl+Shift+T 快捷翻译；退出时 unhook。"
+    },
+    {
+      "id": "pillow",
+      "kind": "pip",
+      "display_name": "Pillow",
+      "version": ">=10.0.0",
+      "pip_spec": "pillow>=10.0.0",
+      "source_file": "desktop-pet/requirements.txt",
+      "optional": false,
+      "tags": ["desktop-pet"],
+      "role": "托盘图标位图绘制（PIL.Image / ImageDraw）；PyInstaller 打包时需 hidden-import PIL._imaging。"
+    },
+    {
+      "id": "pystray",
+      "kind": "pip",
+      "display_name": "pystray",
+      "version": ">=0.19.5",
+      "pip_spec": "pystray>=0.19.5",
+      "source_file": "desktop-pet/requirements.txt",
+      "optional": false,
+      "tags": ["desktop-pet"],
+      "role": "Windows 系统托盘菜单：显示/隐藏、翻译、设置、退出等。"
+    },
+    {
+      "id": "pyinstaller",
+      "kind": "pip",
+      "display_name": "PyInstaller",
+      "version": ">=6.0.0",
+      "pip_spec": "pyinstaller>=6.0.0",
+      "source_file": "desktop-pet/requirements.txt",
+      "optional": true,
+      "tags": ["desktop-pet-build"],
+      "role": "将 pet.py 打成 DesktopPet.exe（快速更新.bat / DesktopPet.spec）；仅打包时需要，日常 python pet.py 不必装。"
+    },
+    {
+      "id": "git",
+      "kind": "system",
+      "display_name": "Git",
+      "version": "2.x",
+      "install": {
+        "windows": "https://git-scm.com/download/win",
+        "linux": "sudo apt install git",
+        "macos": "xcode-select --install 或 brew install git"
+      },
+      "pip_spec": null,
+      "optional": false,
+      "tags": ["opencode-git"],
+      "role": "pony git 浅克隆/同步 GitHub 仓库（Pony_Cursor_repo）；未在 PATH 时会报错退出。"
+    },
+    {
+      "id": "ollama",
+      "kind": "system",
+      "display_name": "Ollama",
+      "version": "桌面版或服务",
+      "install": {
+        "windows": "https://ollama.com/download",
+        "linux": "curl -fsSL https://ollama.com/install.sh | sh",
+        "macos": "https://ollama.com/download"
+      },
+      "pip_spec": null,
+      "optional": true,
+      "tags": ["desktop-pet", "hi-ai"],
+      "role": "本地大模型 API（默认 http://127.0.0.1:11434）；宠物 AI 对话、Hi AI 聊天；需 ollama pull 模型如 gemma3:4b。"
+    }
+  ],
+  "pip_groups": {
+    "game": ["pygame>=2.5.0"],
+    "desktop-pet-runtime": ["keyboard>=0.13.5", "pillow>=10.0.0", "pystray>=0.19.5"],
+    "desktop-pet-full": ["keyboard>=0.13.5", "pillow>=10.0.0", "pystray>=0.19.5", "pyinstaller>=6.0.0"],
+    "opencode-optional": ["questionary"],
+    "opencode-editable": ["setuptools>=61"]
+  },
+  "notes": [
+    "GitHub专用/requirements.txt 注明仅使用标准库，无额外 pip 包。",
+    "opencode/pyproject.toml 的 dependencies 为空数组；运行时仅需 Python 标准库 + 可选 questionary。",
+    "desktop-pet 在缺少 pystray/pillow 时会打印提示，托盘与部分功能不可用。",
+    "keyboard 在 Linux 上可能需要 root 或额外权限；本仓库主要面向 Windows。",
+    "安装 Pony CLI：在 opencode 目录执行 pip install -e .（见 install_pony.bat）。"
+  ]
+}
