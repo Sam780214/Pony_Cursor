@@ -2,7 +2,8 @@
   "meta": {
     "version": "1.0",
     "title": "Pony_Cursor 依赖清单",
-    "description": "各子项目运行、构建与可选功能所需的预装依赖；供 install_helper.py 读取并生成安装命令。",
+    "description": "各子项目运行、构建与可选功能所需的预装依赖；供 install_helper.py 读取并生成安装命令。不含 GitHub专用/ 目录。",
+    "excludes_paths": ["GitHub专用/"],
     "python_min": "3.10",
     "repository": "Pony_Cursor",
     "last_scanned": "2026-05-26"
@@ -55,14 +56,6 @@
       "entry": "快速更新.bat / PyInstaller",
       "run_hint": "仅构建时需要 pyinstaller",
       "dependency_ids": ["python", "tkinter", "keyboard", "pillow", "pystray", "pyinstaller"]
-    },
-    {
-      "id": "hi-ai",
-      "name": "Hi AI (GitHub专用/)",
-      "path": "GitHub专用/",
-      "entry": "python main.py 或 run_web.bat",
-      "run_hint": "仅标准库；对话依赖本机 Ollama 服务",
-      "dependency_ids": ["python", "tkinter", "ollama"]
     }
   ],
   "dependencies": [
@@ -93,8 +86,8 @@
       },
       "pip_spec": null,
       "optional": false,
-      "tags": ["desktop-pet", "hi-ai"],
-      "role": "桌面 GUI：宠物主窗口、设置面板；Hi AI 桌面版界面与统计图表。"
+      "tags": ["desktop-pet"],
+      "role": "桌面 GUI：宠物主窗口、设置面板与相关对话框。"
     },
     {
       "id": "setuptools",
@@ -198,8 +191,8 @@
       },
       "pip_spec": null,
       "optional": true,
-      "tags": ["desktop-pet", "hi-ai"],
-      "role": "本地大模型 API（默认 http://127.0.0.1:11434）；宠物 AI 对话、Hi AI 聊天；需 ollama pull 模型如 gemma3:4b。"
+      "tags": ["desktop-pet"],
+      "role": "本地大模型 API（默认 http://127.0.0.1:11434）；桌面宠物 AI 对话；需 ollama pull 模型如 gemma3:4b。"
     }
   ],
   "pip_groups": {
@@ -210,7 +203,7 @@
     "opencode-editable": ["setuptools>=61"]
   },
   "notes": [
-    "GitHub专用/requirements.txt 注明仅使用标准库，无额外 pip 包。",
+    "本清单不包含 GitHub专用/（Hi AI 公开版请见该目录自带 README）。",
     "opencode/pyproject.toml 的 dependencies 为空数组；运行时仅需 Python 标准库 + 可选 questionary。",
     "desktop-pet 在缺少 pystray/pillow 时会打印提示，托盘与部分功能不可用。",
     "keyboard 在 Linux 上可能需要 root 或额外权限；本仓库主要面向 Windows。",
