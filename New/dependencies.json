@@ -207,6 +207,7 @@
     "opencode/pyproject.toml 的 dependencies 为空数组；运行时仅需 Python 标准库 + 可选 questionary。",
     "desktop-pet 在缺少 pystray/pillow 时会打印提示，托盘与部分功能不可用。",
     "keyboard 在 Linux 上可能需要 root 或额外权限；本仓库主要面向 Windows。",
-    "安装 Pony CLI：在 opencode 目录执行 pip install -e .（见 install_pony.bat）。"
+    "安装 Pony CLI：在 opencode 目录执行 pip install -e .（见 install_pony.bat）。",
+    "install_helper 点「执行 pip 安装」会弹出进度窗口；国内网络请勾选清华镜像，避免长时间像未响应。"
   ]
 }

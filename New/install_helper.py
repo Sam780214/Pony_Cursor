@@ -9,8 +9,12 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+# 国内访问 PyPI 较慢时可选镜像
+PYPI_MIRROR = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 if TYPE_CHECKING:
     import tkinter as tk
@@ -42,6 +46,8 @@ class InstallHelperApp:
         self.dep_by_id = {d["id"]: d for d in self.catalog["dependencies"]}
         self.tool_by_id = {t["id"]: t for t in self.catalog["tools"]}
         self.vars: dict = {}
+        self._pip_busy = False
+        self._pip_proc: subprocess.Popen[str] | None = None
 
         self.root = tk.Tk()
         self.root.title("Pony_Cursor 依赖安装助手")
@@ -111,11 +117,22 @@ class InstallHelperApp:
         )
         self.cmd_text.pack(fill=tk.X)
 
+        opt_row = ttk.Frame(right)
+        opt_row.pack(fill=tk.X, pady=(4, 0))
+        self.use_mirror = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            opt_row,
+            text="使用清华 PyPI 镜像（国内网络推荐，可减少卡住/未响应）",
+            variable=self.use_mirror,
+            command=self._refresh_command,
+        ).pack(anchor=tk.W)
+
         btn_row = ttk.Frame(right)
         btn_row.pack(fill=tk.X, pady=8)
         ttk.Button(btn_row, text="刷新命令", command=self._refresh_command).pack(side=tk.LEFT)
         ttk.Button(btn_row, text="复制命令", command=self._copy_command).pack(side=tk.LEFT, padx=6)
-        ttk.Button(btn_row, text="执行 pip 安装", command=self._run_pip).pack(side=tk.LEFT)
+        self.btn_install = ttk.Button(btn_row, text="执行 pip 安装", command=self._run_pip)
+        self.btn_install.pack(side=tk.LEFT)
         ttk.Button(btn_row, text="打开 JSON", command=self._open_json).pack(side=tk.RIGHT)
 
         notes = self.catalog.get("notes", [])
@@ -230,12 +247,28 @@ class InstallHelperApp:
                 specs.append(spec)
         return specs
 
+    def _pip_argv(self, specs: list[str], *, use_mirror: bool | None = None) -> list[str]:
+        mirror = (
+            use_mirror
+            if use_mirror is not None
+            else bool(getattr(self, "use_mirror", None) and self.use_mirror.get())
+        )
+        argv = [sys.executable, "-m", "pip", "install"]
+        if mirror:
+            argv.extend(["-i", PYPI_MIRROR])
+        argv.extend(["--no-input", "-v", *specs])
+        return argv
+
     def _refresh_command(self) -> None:
         tk = self.tk
         specs = self._selected_pip_specs()
         py = sys.executable
         if specs:
-            cmd = f'"{py}" -m pip install ' + " ".join(f'"{s}"' for s in specs)
+            parts = [f'"{py}"', "-m", "pip", "install", "--no-input"]
+            if getattr(self, "use_mirror", None) and self.use_mirror.get():
+                parts += ["-i", PYPI_MIRROR]
+            parts.append(" ".join(f'"{s}"' for s in specs))
+            cmd = " ".join(parts)
         else:
             cmd = "# 请勾选至少一个 pip 包（带 [pip] 标记的项）"
         self.cmd_text.delete("1.0", tk.END)
@@ -251,29 +284,102 @@ class InstallHelperApp:
         self.root.clipboard_append(text)
         self.messagebox.showinfo("已复制", "pip 命令已复制到剪贴板。")
 
+    def _set_pip_busy(self, busy: bool) -> None:
+        self._pip_busy = busy
+        if busy:
+            self.btn_install.state(["disabled"])
+        else:
+            self.btn_install.state(["!disabled"])
+
     def _run_pip(self) -> None:
+        if self._pip_busy:
+            self.messagebox.showinfo("请稍候", "正在安装中，请查看安装进度窗口。")
+            return
         specs = self._selected_pip_specs()
         if not specs:
             self.messagebox.showwarning("未选择", "请先勾选要安装的 pip 包。")
             return
+        mirror_hint = "\n\n已勾选清华镜像（国内网络更快）。" if self.use_mirror.get() else ""
         if not self.messagebox.askyesno(
             "确认安装",
-            f"将执行 pip 安装 {len(specs)} 个包：\n" + "\n".join(specs),
+            f"将执行 pip 安装 {len(specs)} 个包：\n"
+            + "\n".join(specs)
+            + "\n\n安装过程会打开进度窗口；下载较大时可能需几分钟，并非死机。"
+            + mirror_hint,
         ):
             return
-        try:
-            proc = subprocess.run(
-                [sys.executable, "-m", "pip", "install", *specs],
-                capture_output=True,
-                text=True,
-            )
-            out = (proc.stdout or "") + (proc.stderr or "")
-            if proc.returncode == 0:
-                self.messagebox.showinfo("安装完成", out[-2000:] or "成功。")
+        self._open_pip_progress_window(specs)
+
+    def _open_pip_progress_window(self, specs: list[str]) -> None:
+        tk = self.tk
+        ttk = self.ttk
+        win = tk.Toplevel(self.root)
+        win.title("pip 安装进度")
+        win.geometry("720x420")
+        win.transient(self.root)
+        ttk.Label(
+            win,
+            text="正在安装，主窗口可继续操作；下方会实时显示 pip 输出。",
+            wraplength=680,
+        ).pack(anchor=tk.W, padx=8, pady=8)
+        log = self.scrolledtext.ScrolledText(win, wrap=tk.WORD, font=("Consolas", 9))
+        log.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+        bar = ttk.Progressbar(win, mode="indeterminate")
+        bar.pack(fill=tk.X, padx=8, pady=4)
+        bar.start(12)
+        btn_close = ttk.Button(win, text="关闭", state=tk.DISABLED, command=win.destroy)
+        btn_close.pack(pady=8)
+
+        argv = self._pip_argv(specs)
+        log.insert(tk.END, "命令: " + " ".join(argv) + "\n\n")
+        log.see(tk.END)
+
+        self._set_pip_busy(True)
+
+        def append_line(line: str) -> None:
+            log.insert(tk.END, line)
+            log.see(tk.END)
+
+        def on_done(code: int, err: str | None) -> None:
+            bar.stop()
+            self._set_pip_busy(False)
+            self._pip_proc = None
+            btn_close.state(["!disabled"])
+            if err:
+                append_line(f"\n[错误] {err}\n")
+            append_line(f"\n--- 结束，退出码 {code} ---\n")
+            if code == 0:
+                self.messagebox.showinfo("安装完成", "pip 安装已成功完成。")
             else:
-                self.messagebox.showerror("安装失败", out[-4000:] or f"退出码 {proc.returncode}")
-        except OSError as e:
-            self.messagebox.showerror("错误", str(e))
+                self.messagebox.showerror(
+                    "安装失败",
+                    f"退出码 {code}。请查看进度窗口输出；国内网络可勾选「清华镜像」后重试。",
+                )
+
+        def worker() -> None:
+            code = -1
+            err: str | None = None
+            flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+            try:
+                proc = subprocess.Popen(
+                    argv,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                    creationflags=flags,
+                )
+                self._pip_proc = proc
+                assert proc.stdout is not None
+                for line in proc.stdout:
+                    self.root.after(0, append_line, line)
+                code = proc.wait()
+            except OSError as e:
+                err = str(e)
+            finally:
+                self.root.after(0, on_done, code, err)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _open_json(self) -> None:
         try:
@@ -326,8 +432,9 @@ def _cli_install(tool_id: str | None, specs: list[str] | None, dry_run: bool) ->
     if not chosen:
         print("没有可安装的 pip 包。", file=sys.stderr)
         return 1
-    cmd = [sys.executable, "-m", "pip", "install", *chosen]
+    cmd = [sys.executable, "-m", "pip", "install", "--no-input", "-v", *chosen]
     print(" ".join(cmd))
+    print("（安装中请耐心等待；若卡住可改用: pip install -i", PYPI_MIRROR, "...）")
     if dry_run:
         return 0
     return subprocess.run(cmd).returncode
