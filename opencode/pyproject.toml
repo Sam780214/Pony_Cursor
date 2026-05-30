@@ -13,6 +13,7 @@ pony = "opencode.cli:main"
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["opencode*"]
+# 显式列出包：避免 setuptools.packages.find 的 include 模式在部分环境下未收录 opencode，
+# 导致仅安装了 pony 入口脚本却无可导入的 opencode 包（ModuleNotFoundError）。
+[tool.setuptools]
+packages = ["opencode"]
